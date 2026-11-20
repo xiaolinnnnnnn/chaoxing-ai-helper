@@ -1,0 +1,28 @@
+{
+  "name": "chaoxing-headless",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "学习通 AI 实践无头自动化引擎：不打开学习通页面，后台跑完对话与任务流",
+  "bin": {
+    "cxai": "./bin/cxai.mjs"
+  },
+  "scripts": {
+    "build:agent": "node esbuild.agent.mjs",
+    "setup": "npm run build:agent && npx playwright install chromium",
+    "login": "node bin/cxai.mjs login",
+    "test-api": "node bin/cxai.mjs test",
+    "once": "node bin/cxai.mjs once",
+    "run": "node bin/cxai.mjs run",
+    "serve": "node bin/cxai.mjs serve",
+    "status": "node bin/cxai.mjs status",
+    "mock": "node test/mock-e2e.mjs",
+    "verify": "npm run build:agent && npm run mock"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}

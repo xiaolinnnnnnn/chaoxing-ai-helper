@@ -1,0 +1,1076 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>学习通 AI 实践 · 控制台</title>
+<style>
+  :root {
+    --bg:#0e1014; --card:#171a21; --card2:#1e222b; --line:#282e3a; --fg:#e8ebf0;
+    --muted:#8b93a3; --ok:#34d399; --warn:#fbbf24; --err:#f87171; --accent:#4f8dfd;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:14px/1.55 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    padding:12px 12px 40px;max-width:720px;margin:0 auto}
+  h1{font-size:17px;margin:2px 0 3px}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:12px}
+  .tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);
+    border-radius:11px;padding:4px;margin-bottom:12px}
+  .tab{flex:1;text-align:center;padding:8px 4px;border-radius:8px;font-size:13px;
+    color:var(--muted);cursor:pointer;user-select:none;transition:.15s}
+  .tab.on{background:var(--card2);color:var(--fg);font-weight:600}
+  .pane{display:none}.pane.on{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:13px;margin-bottom:11px}
+  .card h2{font-size:13px;margin:0 0 11px;color:var(--fg);font-weight:600;
+    display:flex;align-items:center;gap:7px}
+  .card h2 .hint{font-size:11px;color:var(--muted);font-weight:400}
+  label{display:block;font-size:12px;color:var(--muted);margin:9px 0 5px}
+  input,textarea{width:100%;background:#0b0e13;color:var(--fg);border:1px solid var(--line);
+    border-radius:9px;padding:10px 12px;font-size:14px;font-family:inherit;outline:none}
+  input:focus,textarea:focus{border-color:#3a4a66}
+  input::placeholder,textarea::placeholder{color:#4d5566}
+  textarea{resize:vertical;min-height:64px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .grow{flex:1}
+  button{background:var(--card2);color:var(--fg);border:1px solid var(--line);
+    border-radius:9px;padding:10px 15px;font-size:13.5px;cursor:pointer;font-family:inherit}
+  button:active{opacity:.75}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  button.danger{background:#7f1d1d;border-color:#7f1d1d}
+  button:disabled{opacity:.4}
+  button.sm{padding:7px 11px;font-size:12px}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
+    font-size:12px;border:1px solid var(--line);background:#0b0e13}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:0 0 7px}
+  .dot.ok{background:var(--ok)}.dot.warn{background:var(--warn)}.dot.err{background:var(--err)}
+  .dot.run{background:var(--accent);animation:pulse 1.2s infinite}
+  @keyframes pulse{50%{opacity:.3}}
+  .bar{height:5px;background:#0b0e13;border-radius:999px;overflow:hidden;margin-top:10px}
+  .bar>i{display:block;height:100%;background:var(--accent);width:0;transition:width .35s}
+  .msg{font-size:12.5px;margin-top:9px;padding:9px 11px;border-radius:8px;display:none;
+    white-space:pre-wrap;word-break:break-all;line-height:1.5}
+  .msg.show{display:block}
+  .msg.ok{background:#0d2a20;color:#8ff0c4;border:1px solid #17553f}
+  .msg.err{background:#2c1416;color:#ffb4b4;border:1px solid #5c2226}
+  .msg.info{background:#111a2b;color:#a8c4f5;border:1px solid #24354f}
+  .kv{font-size:11.5px;color:var(--muted)}
+  .kv b{display:block;color:var(--fg);font-size:15px;font-weight:600;margin-top:1px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+  pre{background:#0b0e13;border:1px solid var(--line);border-radius:9px;padding:10px;
+    overflow:auto;max-height:340px;font-size:11px;line-height:1.55;margin:0;
+    white-space:pre-wrap;word-break:break-all}
+  .ev{font-size:12px;padding:5px 0;border-bottom:1px solid #1b1f28;word-break:break-all}
+  .ev:last-child{border:0}
+  .ev .t{color:#5b6478;margin-right:6px;font-variant-numeric:tabular-nums}
+  .muted{color:var(--muted)}
+  .account-bar{display:flex;align-items:center;gap:10px;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+  .acc-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;
+    background:#0b0e13;flex:0 0 40px;border:1px solid var(--line)}
+  .acc-info{flex:1;min-width:0}
+  .acc-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .acc-meta{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chk{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);margin-top:10px}
+  .chk input{width:auto}
+  .seg{display:flex;gap:5px;background:#0b0e13;border:1px solid var(--line);
+    border-radius:9px;padding:3px;margin-bottom:11px}
+  .seg button{flex:1;background:transparent;border:0;padding:8px 4px;font-size:12.5px;
+    color:var(--muted);border-radius:7px}
+  .seg button.on{background:var(--card2);color:var(--fg);font-weight:600}
+  .course-item{padding:11px 12px;border:1px solid var(--line);border-radius:10px;
+    margin-bottom:8px;cursor:pointer;background:#0b0e13;transition:.12s;
+    display:flex;align-items:center;gap:10px}
+  .course-item .course-check{width:18px;height:18px;flex:0 0 18px;accent-color:var(--accent)}
+  .course-item .ci-body{flex:1;min-width:0}
+  .course-item:active{background:#12161e;border-color:#3a4a66}
+  .ci-title{font-size:13.5px;font-weight:600;margin-bottom:3px}
+  .ci-brief{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sec-h{font-size:12px;color:var(--accent);font-weight:600;margin:0 0 7px}
+  .task-row{font-size:12px;color:#c3cad6;padding:7px 10px;border-left:2px solid var(--line);
+    margin-bottom:5px;background:#0b0e13;border-radius:0 7px 7px 0;word-break:break-all}
+  .ai-row{display:flex;align-items:center;gap:9px;padding:10px 11px;border-radius:10px;
+    background:#0b0e13;border:1px solid var(--line);margin-bottom:7px}
+  .ai-row.done{opacity:.55}
+  .acc-row{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;
+    background:#0b0e13;border:1px solid var(--line);margin-bottom:7px}
+  .acc-row.active{border-color:var(--accent);background:#101a2b}
+  .acc-row .acc-avatar{width:32px;height:32px;flex:0 0 32px}
+  .acc-row .ar-main{flex:1;min-width:0}
+  .acc-row .ar-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .acc-row .ar-meta{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .basket{background:var(--card);border:1px solid #2f4a6e;border-radius:12px;
+    padding:10px 12px;margin-bottom:11px;display:flex;align-items:center;gap:9px}
+  .bk-main{flex:1;min-width:0}
+  .bk-title{font-size:12.5px;font-weight:600}
+  .bk-list{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+  .ai-row .task-check{width:17px;height:17px;flex:0 0 17px;accent-color:var(--accent)}
+  .ai-row .task-check-ph{width:17px;flex:0 0 17px}
+  .ai-main{flex:1;min-width:0}
+  .ai-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ai-sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .ai-badge{font-size:11px;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .ai-badge.done{background:#0d2a20;color:#8ff0c4}
+  .ai-badge.todo{background:#3a1a1c;color:#ffb4b4}
+  .ai-badge.unk{background:#1e222b;color:#8b93a3}
+</style>
+</head>
+<body>
+  <h1>学习通 AI 实践 · 控制台</h1>
+  <div class="sub">无头运行 · 不打开学习通页面也能跑完对话</div>
+
+  <div class="account-bar" id="accountBar" hidden>
+    <img class="acc-avatar" id="accAvatar" alt="" referrerpolicy="no-referrer">
+    <div class="acc-info">
+      <div class="acc-name" id="accName">-</div>
+      <div class="acc-meta" id="accMeta">-</div>
+    </div>
+    <button class="sm" id="btnRefreshAcc">刷新</button>
+    <button class="sm danger" id="btnLogout">登出</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" data-tab="api">① 接口</div>
+    <div class="tab" data-tab="cx">② 登录</div>
+    <div class="tab" data-tab="courses">③ 课程</div>
+    <div class="tab" data-tab="run">④ 任务</div>
+  </div>
+
+  <div class="basket" id="basket" hidden>
+    <div class="bk-main">
+      <div class="bk-title"><span id="bkCount">0</span> 个任务 · <span id="bkAccs">0</span> 个账号</div>
+      <div class="bk-list" id="bkList"></div>
+    </div>
+    <button class="sm primary" id="btnQueueRun">队列执行</button>
+    <button class="sm" id="btnBasketClear">清空</button>
+  </div>
+
+  <!-- ============ 接口 ============ -->
+  <div class="pane on" id="pane-api">
+    <div class="card">
+      <h2>模型接口 <span class="hint">OpenAI 兼容</span></h2>
+      <label>Base URL</label>
+      <input id="cBaseUrl" placeholder="https://api.deepseek.com">
+      <label>API Key</label>
+      <input id="cApiKey" type="password" placeholder="留空表示不修改">
+      <label>模型</label>
+      <input id="cModel" placeholder="deepseek-chat">
+      <div class="row" style="margin-top:12px">
+        <button class="primary" id="btnSaveApi">保存</button>
+        <button id="btnTest">测试连接</button>
+      </div>
+      <div class="msg" id="apiMsg"></div>
+    </div>
+  </div>
+
+  <!-- ============ 学习通 ============ -->
+  <div class="pane" id="pane-cx">
+    <div class="card">
+      <div class="row" style="margin-bottom:10px">
+        <h2 style="margin:0">账号池</h2>
+        <span class="grow"></span>
+        <button class="sm" id="btnReloadAccounts">刷新</button>
+      </div>
+      <div id="accountList"><span class="muted" style="font-size:12.5px">加载中…</span></div>
+    </div>
+
+    <div class="card">
+      <h2>登录 <span class="hint">登录成功会自动加入账号池</span></h2>
+
+      <div class="seg">
+        <button class="on" data-mode="pwd">密码登录</button>
+        <button data-mode="sms">验证码登录</button>
+      </div>
+
+      <!-- 密码登录 -->
+      <div id="mode-pwd">
+        <label>手机号 / 超星号</label>
+        <input id="cPhone" placeholder="13800000000" inputmode="numeric">
+        <label>学习通密码</label>
+        <input id="cPassword" type="password" placeholder="留空表示不修改">
+        <div class="chk">
+          <input type="checkbox" id="cRemember">
+          <label for="cRemember" style="margin:0">记住账号密码（写入 .env）</label>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="primary" id="btnLogin">登录学习通</button>
+          <span class="pill" id="loginPill"><i class="dot"></i>未检测</span>
+        </div>
+      </div>
+
+      <!-- 验证码登录 -->
+      <div id="mode-sms" style="display:none">
+        <label>手机号</label>
+        <input id="cSmsPhone" placeholder="13800000000" inputmode="numeric">
+        <label>短信验证码</label>
+        <div class="row">
+          <input id="cSmsCode" placeholder="6 位数字" inputmode="numeric" maxlength="8" style="flex:1">
+          <button id="btnSendCode" style="white-space:nowrap">获取验证码</button>
+        </div>
+        <div class="chk">
+          <input type="checkbox" id="cRememberSms">
+          <label for="cRememberSms" style="margin:0">记住手机号（写入 .env）</label>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="primary" id="btnLoginCode">登录学习通</button>
+          <span class="pill" id="loginPill2"><i class="dot"></i>未检测</span>
+        </div>
+      </div>
+
+      <div class="msg" id="loginMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>目标页面</h2>
+      <label>AI 实践节点 URL（要带 courseId）</label>
+      <textarea id="cTargetUrl" placeholder="https://mooc2-ans.chaoxing.com/mooc2-ans-vue/taskChain/student/answer?courseId=..."></textarea>
+      <div class="row" style="margin-top:12px">
+        <button id="btnSaveTarget">保存</button>
+        <button id="btnDetect">探测结构</button>
+      </div>
+      <div class="msg" id="detectMsg"></div>
+    </div>
+  </div>
+
+  <!-- ============ 课程 ============ -->
+  <div class="pane" id="pane-courses">
+    <div class="card">
+      <div class="row" style="margin-bottom:10px">
+        <h2 style="margin:0">我的课程</h2>
+        <span class="grow"></span>
+        <button class="sm" id="btnLoadCourses">加载课程</button>
+      </div>
+      <div id="courseList"><span class="muted" style="font-size:12.5px">点右上「加载课程」（约 15 秒）</span></div>
+      <div class="row" style="margin-top:12px" id="batchBar" hidden>
+        <span class="muted" style="font-size:12.5px" id="selCount">已选 0 门</span>
+        <span class="grow"></span>
+        <button class="primary" id="btnBatchRun">批量刷选中课程</button>
+      </div>
+      <div class="msg" id="courseMsg"></div>
+    </div>
+
+    <div class="card" id="courseDetailCard" style="display:none">
+      <div class="row" style="margin-bottom:10px">
+        <h2 style="margin:0" id="courseDetailTitle">课程详情</h2>
+        <span class="grow"></span>
+        <button class="sm" id="btnCloseCourse">关闭</button>
+      </div>
+      <div id="courseDetailBody"></div>
+    </div>
+  </div>
+
+  <!-- ============ 任务 ============ -->
+  <div class="pane" id="pane-run">
+    <div class="card">
+      <div class="row">
+        <span class="pill"><i class="dot" id="dot"></i><span id="phase">空闲</span></span>
+        <span class="grow"></span>
+        <span class="muted" style="font-size:12.5px" id="progress">0 / 0</span>
+      </div>
+      <div class="bar"><i id="barFill"></i></div>
+      <div class="grid" style="margin-top:13px">
+        <div class="kv">模型<b id="kModel" style="font-size:13px">-</b></div>
+        <div class="kv">已跑<b id="kRan">0 轮</b></div>
+      </div>
+      <div class="msg" id="runMsg"></div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <button class="primary" id="btnOnce">跑一轮</button>
+        <button class="primary" id="btnRun">跑完</button>
+        <button class="danger" id="btnStop" disabled>停止</button>
+        <span class="grow"></span>
+        <button class="sm" id="btnReports">报告</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>实时事件</h2>
+      <div id="events"><span class="muted" style="font-size:12.5px">还没有事件</span></div>
+    </div>
+
+    <div class="card" id="reportCard" style="display:none">
+      <div class="row" style="margin-bottom:9px">
+        <h2 style="margin:0" id="reportTitle">报告</h2>
+        <span class="grow"></span>
+        <button class="sm" id="btnCloseReport">关闭</button>
+      </div>
+      <pre id="reportBody"></pre>
+    </div>
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+let lastEvCount = -1;
+let lastDoneCount = 0;
+
+const PHASE = {
+  idle:'空闲', starting:'启动中', detecting:'定位对话窗口', running:'运行中',
+  'waiting-question':'等待提问', thinking:'模型思考中', sending:'写入并发送',
+  'waiting-reply':'等待回复', done:'已完成', error:'出错'
+};
+
+function showMsg(el, text, kind='info') {
+  el.textContent = text;
+  el.className = 'msg show ' + kind;
+}
+function hideMsg(el) { el.className = 'msg'; }
+
+async function api(path, opts) {
+  const res = await fetch(path, opts);
+  return res.json();
+}
+const post = (path, body) => api(path, {
+  method:'POST', headers:{'content-type':'application/json'},
+  body: JSON.stringify(body || {})
+});
+
+/* ---------- Tab ---------- */
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+    document.querySelectorAll('.pane').forEach(p =>
+      p.classList.toggle('on', p.id === 'pane-' + t.dataset.tab));
+  };
+});
+
+/* ---------- 加载配置 ---------- */
+async function loadConfig() {
+  const d = await api('/api/config');
+  const c = d.config || {};
+  $('cBaseUrl').value = c.baseUrl || '';
+  $('cModel').value = c.model || '';
+  $('cApiKey').placeholder = c.hasApiKey ? `已配置 ${c.apiKeyMasked}（留空不修改）` : '未配置，请填写';
+  $('cTargetUrl').value = c.targetUrl || '';
+  $('cPhone').placeholder = c.hasPhone ? `已保存 ${c.phoneMasked}（留空不修改）` : '13800000000';
+  $('cSmsPhone').placeholder = c.hasPhone ? c.phoneMasked : '13800000000';
+  if (c.hasPhone && !$('cSmsPhone').value) $('cSmsPhone').placeholder = c.phoneMasked;
+  $('kModel').textContent = c.model || '-';
+  return c;
+}
+
+/* ---------- 接口 ---------- */
+$('btnSaveApi').onclick = async () => {
+  const body = { baseUrl: $('cBaseUrl').value.trim(), model: $('cModel').value.trim() };
+  const k = $('cApiKey').value.trim();
+  if (k) body.apiKey = k;
+  const r = await post('/api/config', body);
+  showMsg($('apiMsg'), r.ok ? '✓ 已保存到 .env' : '保存失败：' + (r.error || ''), r.ok ? 'ok' : 'err');
+  $('cApiKey').value = '';
+  await loadConfig();
+};
+
+$('btnTest').onclick = async () => {
+  showMsg($('apiMsg'), '测试中…', 'info');
+  $('btnTest').disabled = true;
+  try {
+    const body = {};
+    const k = $('cApiKey').value.trim();
+    if (k) body.apiKey = k;
+    if ($('cBaseUrl').value.trim()) body.baseUrl = $('cBaseUrl').value.trim();
+    if ($('cModel').value.trim()) body.model = $('cModel').value.trim();
+    const r = await post('/api/test-llm', body);
+    if (r.ok) {
+      showMsg($('apiMsg'),
+        `✓ 连通 ${r.latencyMs}ms · 回复「${r.reply}」` +
+        (r.models?.length ? `\n可用模型：${r.models.join(', ')}` : ''), 'ok');
+    } else {
+      showMsg($('apiMsg'), '✗ ' + r.error, 'err');
+    }
+  } finally { $('btnTest').disabled = false; }
+};
+
+/* ---------- 登录 ---------- */
+$('btnLogin').onclick = async () => {
+  const phone = $('cPhone').value.trim();
+  const password = $('cPassword').value;
+  if (!phone || !password) {
+    showMsg($('loginMsg'), '请填写手机号和密码', 'err');
+    return;
+  }
+  showMsg($('loginMsg'), '登录中，可能需要十几秒…', 'info');
+  $('btnLogin').disabled = true;
+  try {
+    const r = await post('/api/login', { phone, password, remember: $('cRemember').checked });
+    if (r.ok) {
+      showMsg($('loginMsg'), '✓ 登录成功，账号已加入账号池', 'ok');
+      $('cPassword').value = '';
+      setLoginPill(true);
+      loadAccounts();
+    } else {
+      showMsg($('loginMsg'), '✗ ' + (r.reason || r.error) + (r.hint ? '\n' + r.hint : ''), 'err');
+      setLoginPill(false);
+    }
+  } finally { $('btnLogin').disabled = false; }
+};
+
+function setLoginPill(state) {
+  const html = state ? '<i class="dot ok"></i>已登录' : '<i class="dot err"></i>未登录';
+  $('loginPill').innerHTML = html;
+  $('loginPill2').innerHTML = html;
+}
+
+/* ---------- 登录方式切换 ---------- */
+document.querySelectorAll('.seg button').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b));
+    $('mode-pwd').style.display = b.dataset.mode === 'pwd' ? '' : 'none';
+    $('mode-sms').style.display = b.dataset.mode === 'sms' ? '' : 'none';
+    hideMsg($('loginMsg'));
+  };
+});
+
+/* ---------- 获取短信验证码 ---------- */
+let codeTimer = null;
+$('btnSendCode').onclick = async () => {
+  const phone = $('cSmsPhone').value.trim();
+  if (!/^1\d{10}$/.test(phone)) {
+    showMsg($('loginMsg'), '请填 11 位手机号', 'err');
+    return;
+  }
+  $('btnSendCode').disabled = true;
+  showMsg($('loginMsg'), '正在请求短信，约 10 秒…', 'info');
+  try {
+    const r = await post('/api/send-code', { phone });
+    if (r.ok) {
+      showMsg($('loginMsg'),
+        '✓ 验证码已发送' + (r.hint ? '\n' + r.hint : '\n收到后填到下面，5 分钟内有效'),
+        r.needCaptcha ? 'err' : 'ok');
+      let left = 60;
+      clearInterval(codeTimer);
+      $('btnSendCode').textContent = left + 's 后重发';
+      codeTimer = setInterval(() => {
+        left -= 1;
+        $('btnSendCode').textContent = left > 0 ? `${left}s 后重发` : '获取验证码';
+        $('btnSendCode').disabled = left > 0;
+        if (left <= 0) clearInterval(codeTimer);
+      }, 1000);
+    } else {
+      showMsg($('loginMsg'), '✗ ' + r.error, 'err');
+      $('btnSendCode').disabled = false;
+    }
+  } catch (e) {
+    showMsg($('loginMsg'), '✗ ' + e.message, 'err');
+    $('btnSendCode').disabled = false;
+  }
+};
+
+/* ---------- 提交验证码登录 ---------- */
+$('btnLoginCode').onclick = async () => {
+  const code = $('cSmsCode').value.trim();
+  if (!/^\d{4,8}$/.test(code)) {
+    showMsg($('loginMsg'), '请填 4-8 位数字验证码', 'err');
+    return;
+  }
+  $('btnLoginCode').disabled = true;
+  showMsg($('loginMsg'), '登录中…', 'info');
+  try {
+    const r = await post('/api/login-code', {
+      code, remember: $('cRememberSms').checked,
+    });
+    if (r.ok) {
+      showMsg($('loginMsg'), '✓ 登录成功，登录态已保存', 'ok');
+      $('cSmsCode').value = '';
+      setLoginPill(true);
+    } else {
+      showMsg($('loginMsg'), '✗ ' + r.error, 'err');
+    }
+  } finally {
+    $('btnLoginCode').disabled = false;
+  }
+};
+
+/* ---------- 目标页面 ---------- */
+$('btnSaveTarget').onclick = async () => {
+  const r = await post('/api/config', { targetUrl: $('cTargetUrl').value.trim() });
+  showMsg($('detectMsg'), r.ok ? '✓ 目标页面已保存' : '保存失败', r.ok ? 'ok' : 'err');
+};
+
+$('btnDetect').onclick = async () => {
+  const u = $('cTargetUrl').value.trim();
+  if (!u) { showMsg($('detectMsg'), '请先填目标 URL', 'err'); return; }
+  showMsg($('detectMsg'), '正在打开页面探测…', 'info');
+  $('btnDetect').disabled = true;
+  try {
+    const r = await post('/api/detect', { url: u });
+    if (r.ok) {
+      const s = r.summary || {};
+      const recent = (r.recent || []).map(x =>
+        `  [${x.side}] ${String(x.text).slice(0, 60)}`).join('\n');
+      showMsg($('detectMsg'),
+        `✓ 探测成功 confidence=${s.confidence} source=${s.source}\n` +
+        `消息数=${s.messageCount} 输入框=${s.inputLocked ? '锁定' : '可用'} 发送按钮=${s.hasSendBtn ? '有' : '无(走回车)'}\n` +
+        `frame: ${r.frameUrl}` +
+        (recent ? `\n最近消息：\n${recent}` : ''), 'ok');
+    } else {
+      showMsg($('detectMsg'),
+        '✗ ' + (r.error || '探测失败') +
+        (r.loggedIn === false ? '\n提示：当前未登录学习通，先到「② 登录」页登录' : ''), 'err');
+    }
+  } finally { $('btnDetect').disabled = false; }
+};
+
+/* ---------- 课程 ---------- */
+let courseCache = [];
+
+$('btnLoadCourses').onclick = async () => {
+  showMsg($('courseMsg'), '加载中，约 15 秒…', 'info');
+  $('btnLoadCourses').disabled = true;
+  try {
+    const d = await api('/api/courses');
+    if (!d.ok) { showMsg($('courseMsg'), '✗ ' + d.error, 'err'); return; }
+    courseCache = d.courses || [];
+    hideMsg($('courseMsg'));
+    renderCourses(courseCache);
+  } catch (e) {
+    showMsg($('courseMsg'), '✗ ' + e.message, 'err');
+  } finally {
+    $('btnLoadCourses').disabled = false;
+  }
+};
+
+function renderCourses(courses) {
+  if (!courses.length) {
+    $('courseList').innerHTML = '<span class="muted" style="font-size:12.5px">没有课程</span>';
+    return;
+  }
+  $('courseList').innerHTML = courses.map((c, i) => `
+    <div class="course-item" data-idx="${i}">
+      <input type="checkbox" class="course-check" data-idx="${i}">
+      <div class="ci-body">
+        <div class="ci-title">${escapeHtml(c.title || '(无标题)')}</div>
+        <div class="ci-brief">${escapeHtml((c.brief || '').slice(0, 46))}</div>
+      </div>
+    </div>`).join('');
+  $('batchBar').hidden = false;
+  updateSelCount();
+
+  document.querySelectorAll('.course-item').forEach(el => {
+    el.onclick = (ev) => {
+      if (ev.target.classList.contains('course-check')) return;
+      openCourse(courses[Number(el.dataset.idx)]);
+    };
+  });
+  document.querySelectorAll('.course-check').forEach(cb => {
+    cb.onchange = updateSelCount;
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+}
+
+let aiTasks = [];
+
+async function openCourse(c) {
+  $('courseDetailCard').style.display = 'block';
+  $('courseDetailTitle').textContent = c.title || '(无标题)';
+  $('courseDetailBody').innerHTML =
+    '<span class="muted" style="font-size:12.5px">扫描这门课的 AI 实践任务…（约 20 秒）</span>';
+  try {
+    const d = await post('/api/ai/tasks', { courseHref: c.href, scores: false });
+    if (!d.ok) {
+      $('courseDetailBody').innerHTML = `<div class="msg show err">✗ ${escapeHtml(d.error)}</div>`;
+      return;
+    }
+    aiTasks = d.tasks || [];
+    renderAiTasks(c);
+  } catch (e) {
+    $('courseDetailBody').innerHTML = `<div class="msg show err">✗ ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderAiTasks(course) {
+  if (!aiTasks.length) {
+    $('courseDetailBody').innerHTML =
+      '<span class="muted" style="font-size:12.5px">这门课「任务」里没有 AI 实践（类型 77）</span>';
+    return;
+  }
+  const todo = aiTasks.filter(t => t.done !== true && !t.expiredNote);
+  const done = aiTasks.filter(t => t.done === true || t.expiredNote);
+
+  let html = `<div class="row" style="margin-bottom:10px">
+    <span class="pill" style="border-color:#17553f;color:#8ff0c4">已达标 ${done.length}</span>
+    <span class="pill" style="border-color:#5c2226;color:#ffb4b4">可跑 ${todo.length}</span>
+  </div>
+  <div class="muted" style="font-size:11.5px;margin-bottom:9px">
+    未查分数（跑的时候会自动判断，已达标 ≥ 达标分的会跳过）
+  </div>`;
+
+  const rowHtml = (t, idx) => {
+    const score = t.score === null || t.score === undefined ? '未做' : t.score + ' 分';
+    const st = t.done === true ? 'done' : t.done === false ? 'todo' : 'unk';
+    const badge = t.expiredNote ? '已结束' :
+                  t.done === true ? '✓ 达标' :
+                  t.done === false ? (t.attempts ? '待提分' : '未做') : '未扫描';
+    const selectable = t.done !== true && !t.expiredNote;  // 已达标/已结束的不给勾
+    return `<div class="ai-row ${st}">
+      ${selectable
+        ? `<input type="checkbox" class="task-check" data-i="${idx}">`
+        : '<span class="task-check-ph"></span>'}
+      <div class="ai-main">
+        <div class="ai-title">${escapeHtml(t.title || '(无标题)')}</div>
+        <div class="ai-sub">${score} · 练习 ${t.attempts ?? '-'} 次 · 达标 ${t.requirement ?? 80}</div>
+      </div>
+      <div class="ai-badge ${st}">${badge}</div>
+      ${selectable ? `<button class="sm primary ai-run" data-i="${idx}">跑</button>` : ''}
+    </div>`;
+  };
+
+  html += '<div class="sec-h">可跑</div>';
+  html += todo.length
+    ? todo.map(t => rowHtml(t, aiTasks.indexOf(t))).join('')
+    : '<div class="muted" style="font-size:12.5px">没有可跑的任务</div>';
+
+  if (done.length) {
+    html += '<div class="sec-h" style="margin-top:14px">已达标 / 已结束（不跑）</div>';
+    html += done.map(t => rowHtml(t, aiTasks.indexOf(t))).join('');
+  }
+
+  // 选中工具条
+  html += `<div class="row" style="margin-top:12px">
+    <span class="muted" style="font-size:12.5px" id="taskSelCount">已选 0 个</span>
+    <span class="grow"></span>
+    <button class="sm" id="btnScanScores">扫描分数</button>
+    <button class="sm" id="btnSelTodo">全选</button>
+    <button class="sm primary" id="btnRunSelected" disabled>跑选中</button>
+  </div>
+  <div class="msg" id="scanMsg" style="margin-top:9px"></div>`;
+
+  $('courseDetailBody').innerHTML = html;
+
+  const updateCount = () => {
+    const n = document.querySelectorAll('.task-check:checked').length;
+    const el = $('taskSelCount');
+    if (el) el.textContent = `已选 ${n} 个`;
+    const btn = $('btnRunSelected');
+    if (btn) btn.disabled = n === 0;
+  };
+
+  document.querySelectorAll('.task-check').forEach(cb => {
+    cb.onchange = () => {
+      updateCount();
+      const t = aiTasks[Number(cb.dataset.i)];
+      const phone = accountPool.activePhone || '';
+      if (t) toggleBasket(t, phone, cb.checked);
+    };
+  });
+
+  document.querySelectorAll('.ai-run').forEach(btn => {
+    btn.onclick = () => {
+      const t = aiTasks[Number(btn.dataset.i)];
+      if (t) runOne(t);
+    };
+  });
+
+  const selAll = $('btnSelTodo');
+  if (selAll) {
+    selAll.onclick = () => {
+      const boxes = [...document.querySelectorAll('.task-check')];
+      const allOn = boxes.every(b => b.checked);
+      boxes.forEach(b => { b.checked = !allOn; });
+      updateCount();
+      boxes.forEach(b => {
+        const t = aiTasks[Number(b.dataset.i)];
+        if (t) toggleBasket(t, accountPool.activePhone || '', b.checked);
+      });
+    };
+  }
+
+  const scanBtn = $('btnScanScores');
+  if (scanBtn) {
+    scanBtn.onclick = () => scanAllScores();
+  }
+
+  const runSel = $('btnRunSelected');
+  if (runSel) {
+    runSel.onclick = () => {
+      const picked = [...document.querySelectorAll('.task-check:checked')]
+        .map(cb => aiTasks[Number(cb.dataset.i)])
+        .filter(Boolean);
+      if (!picked.length) return;
+      runSelected(picked);
+    };
+  }
+}
+
+/**
+ * 手动扫描分数：逐个任务打开读「最终得分」，逐行刷新。
+ *
+ * 为什么逐个而不是批量：批量的接口要等全部查完才返回，中间没有任何反馈；
+ * 逐个调可以每查完一个就更新那一行，用户能看见进展。
+ */
+async function scanAllScores() {
+  const btn = $('btnScanScores');
+  const msg = $('scanMsg');
+  if (btn.disabled) return;
+  btn.disabled = true;
+
+  const rows = [...document.querySelectorAll('.ai-row')];
+  const targets = [];
+  for (const row of rows) {
+    const idx = row.querySelector('.task-check')?.dataset.i;
+    if (idx === undefined) continue;
+    const t = aiTasks[Number(idx)];
+    if (t && t.stuUrl) targets.push({ row, t });
+  }
+
+  let n = 0;
+  for (const { row, t } of targets) {
+    n += 1;
+    if (msg) { msg.className = 'msg show info'; msg.textContent = `扫描中 ${n}/${targets.length}：${t.title}`; }
+    try {
+      const r = await post('/api/ai/task-score', { stuUrl: t.stuUrl });
+      if (!r.ok) continue;
+      const req = r.requirement || 80;
+      const sub = row.querySelector('.ai-sub');
+      if (sub) {
+        sub.textContent = `${r.score === null ? '未做' : r.score + ' 分'} · 练习 ${r.attempts ?? '-'} 次 · 达标 ${req}`;
+      }
+      const badge = row.querySelector('.ai-badge');
+      const ok = r.done === true;
+      if (badge) {
+        badge.textContent = ok ? '✓ 达标' : (r.attempts ? '待提分' : '未做');
+        badge.className = 'ai-badge ' + (ok ? 'done' : 'todo');
+      }
+      row.classList.toggle('done', ok);
+      const cb = row.querySelector('.task-check');
+      if (cb && ok) { cb.checked = false; cb.disabled = true; }
+    } catch (e) {
+      /* 单个失败不影响后续 */
+    }
+  }
+
+  if (msg) { msg.className = 'msg show ok'; msg.textContent = `✓ 扫描完成，共 ${targets.length} 个任务`; }
+  btn.disabled = false;
+}
+
+async function runSelected(tasks) {
+  const names = tasks.map(t => t.title).join('\n· ');
+  if (!confirm(`将依次跑这 ${tasks.length} 个 AI 实践：\n\n· ${names}\n\n每个答 10 轮后自动结束评估。继续？`)) return;
+  showMsg($('courseMsg'), `已启动 ${tasks.length} 个任务，去「④ 任务」看进度`, 'info');
+  const r = await post('/api/run-todo', {
+    tasks: tasks.map(t => ({ stuUrl: t.stuUrl, title: t.title, requirement: t.requirement })),
+  });
+  if (r.ok) showMsg($('courseMsg'), `✓ 已启动 ${r.count} 个任务`, 'ok');
+  else showMsg($('courseMsg'), '✗ ' + r.error, 'err');
+}
+
+async function runOne(task) {
+  showMsg($('courseMsg'), `开始执行：${task.title}`, 'info');
+  const r = await post('/api/run-task', { stuUrl: task.stuUrl, title: task.title });
+  if (r.ok) showMsg($('courseMsg'), `已启动：${task.title}，去「④ 任务」看进度`, 'ok');
+  else showMsg($('courseMsg'), '✗ ' + r.error, 'err');
+}
+
+async function runTodo(course, todo) {
+  if (!todo.length) return;
+  const r = await post('/api/run-todo', {
+    tasks: todo.map(t => ({ stuUrl: t.stuUrl, title: t.title, requirement: t.requirement })),
+  });
+  if (r.ok) showMsg($('courseMsg'), `已启动批量任务（${todo.length} 个），去「④ 任务」看进度`, 'ok');
+  else showMsg($('courseMsg'), '✗ ' + r.error, 'err');
+}
+
+$('btnCloseCourse').onclick = () => { $('courseDetailCard').style.display = 'none'; };
+
+function selectedCourses() {
+  return [...document.querySelectorAll('.course-check:checked')]
+    .map(cb => courseCache[Number(cb.dataset.idx)])
+    .filter(Boolean);
+}
+
+function updateSelCount() {
+  const n = selectedCourses().length;
+  $('selCount').textContent = `已选 ${n} 门`;
+  $('btnBatchRun').disabled = n === 0;
+}
+
+$('btnBatchRun').onclick = async () => {
+  const picked = selectedCourses();
+  if (!picked.length) return;
+  const names = picked.map(c => c.title).join('、');
+  if (!confirm(`将扫描并完成以下课程里所有未达标的 AI 实践：\n\n${names}\n\n任务多时可能跑很久，期间会自动跳过已达标（≥80 分）的。继续？`)) return;
+
+  showMsg($('courseMsg'), `已启动批量任务（${picked.length} 门），去「④ 任务」看进度`, 'info');
+  const r = await post('/api/run-courses', {
+    courses: picked.map(c => ({ href: c.href, title: c.title })),
+  });
+  if (r.ok) showMsg($('courseMsg'), `✓ 已启动，共 ${r.count} 门课。去「④ 任务」看实时进度`, 'ok');
+  else showMsg($('courseMsg'), '✗ ' + r.error, 'err');
+};
+
+/* ---------- 任务 ---------- */
+$('btnOnce').onclick = () => post('/api/start', { once:true }).then(refresh);
+$('btnRun').onclick = () => post('/api/start', {}).then(refresh);
+$('btnStop').onclick = () => post('/api/stop').then(refresh);
+
+$('btnReports').onclick = async () => {
+  const d = await api('/api/reports');
+  if (!d.reports?.length) {
+    $('reportTitle').textContent = '报告';
+    $('reportBody').textContent = '还没有报告，先跑一次任务。';
+    $('reportCard').style.display = 'block';
+    return;
+  }
+  const r = await api('/api/report?f=' + encodeURIComponent(d.reports[0].file));
+  $('reportTitle').textContent = '报告';
+  $('reportBody').textContent = typeof r === 'string' ? r : JSON.stringify(r, null, 1);
+  $('reportCard').style.display = 'block';
+};
+$('btnCloseReport').onclick = () => { $('reportCard').style.display = 'none'; };
+
+function renderEvents(events) {
+  if (!Array.isArray(events) || !events.length) return;
+  if (events.length === lastEvCount) return;
+  lastEvCount = events.length;
+  $('events').innerHTML = events.slice().reverse().map(e => {
+    const t = new Date(e.at).toLocaleTimeString('zh-CN');
+    let body;
+    if (e.type === 'status') body = `[${PHASE[e.phase] || e.phase}] ${e.round || ''}${e.limit ? ' / ' + e.limit : ''}`;
+    else if (e.type === 'question') body = `第 ${e.round} 轮提问：${(e.text||'').slice(0,80)}…`;
+    else if (e.type === 'round') body = `第 ${e.round} 轮完成 · 作答 ${(e.answer||'').length} 字 · 回复 ${(e.reply||'').length} 字`;
+    else if (e.type === 'task-done') {
+      const r = e.report || {};
+      const req = r.requirement || 80;
+      const before = r.scoreBefore === null || r.scoreBefore === undefined ? '未做' : r.scoreBefore + ' 分';
+      if (r.stoppedBy === 'ALREADY_DONE') {
+        body = `${r.title || '任务'} · <b style="color:#34d399">${before}</b> 已达标（≥${req}），跳过`;
+      } else if (r.stoppedBy === 'ERROR' || r.error) {
+        body = `${r.title || '任务'} · <b style="color:#f87171">失败</b>：${r.error || ''}`;
+      } else {
+        const after = r.scoreAfter === null || r.scoreAfter === undefined ? '?' : r.scoreAfter;
+        const ok = r.scoreAfter >= req;
+        body = `${r.title || '任务'} · ${before} → <b style="color:${ok ? '#34d399' : '#fbbf24'}">${after} 分</b>` +
+               (ok ? ' ✓ 达标' : ' ✗ 未达标');
+      }
+    }
+    else if (e.type === 'done') body = `全部结束 · ${e.report?.stoppedBy || ''}`;
+    else if (e.type === 'error') body = e.message;
+    else body = JSON.stringify(e).slice(0,100);
+    return `<div class="ev"><span class="t">${t}</span>${body}</div>`;
+  }).join('');
+}
+
+function renderAccount(acc, loggedIn) {
+  const bar = $('accountBar');
+  if (!bar) return;
+  if (!acc || (!acc.name && !acc.uid)) {
+    bar.hidden = loggedIn !== true ? true : false;
+    if (loggedIn === true) {
+      $('accName').textContent = '已登录（未取到档案）';
+      $('accMeta').textContent = '点「刷新」拉取账号信息';
+      $('accAvatar').removeAttribute('src');
+    }
+    return;
+  }
+  bar.hidden = false;
+  $('accName').textContent = acc.name || acc.uid || '未知账号';
+  const parts = [];
+  if (acc.school) parts.push(acc.school);
+  if (acc.uid) parts.push('uid ' + acc.uid);
+  if (acc.phoneMasked) parts.push(acc.phoneMasked);
+  $('accMeta').textContent = parts.join(' · ') || '—';
+  const img = $('accAvatar');
+  if (acc.avatar) img.src = acc.avatar;
+  else img.removeAttribute('src');
+}
+
+$('btnRefreshAcc').onclick = async () => {
+  const b = $('btnRefreshAcc');
+  b.disabled = true;
+  try {
+    const r = await post('/api/account/refresh', {});
+    if (r.ok) showMsg($('loginMsg'), '✓ 账号信息已更新', 'ok');
+    else showMsg($('loginMsg'), '✗ ' + r.error, 'err');
+  } finally {
+    b.disabled = false;
+    refresh();
+  }
+};
+
+$('btnLogout').onclick = async () => {
+  if (!confirm('确定登出？会清除本机保存的登录态与账号档案。')) return;
+  await post('/api/logout', {});
+  $('accountBar').hidden = true;
+  setLoginPill(false);
+  refresh();
+};
+
+let accountPool = { accounts: [], activePhone: '' };
+/** 跨账号任务篮：{ phone, title, stuUrl, requirement } */
+let basket = [];
+
+function basketKey(t) { return (t.phone || '') + '|' + t.stuUrl; }
+
+function toggleBasket(task, phone, checked) {
+  const item = { phone, title: task.title, stuUrl: task.stuUrl, requirement: task.requirement };
+  const key = basketKey(item);
+  basket = basket.filter(x => basketKey(x) !== key);
+  if (checked) basket.push(item);
+  renderBasket();
+}
+
+function renderBasket() {
+  const bar = $('basket');
+  if (!bar) return;
+  if (!basket.length) { bar.hidden = true; return; }
+  bar.hidden = false;
+  const phones = new Set(basket.map(x => x.phone));
+  $('bkCount').textContent = basket.length;
+  $('bkAccs').textContent = phones.size;
+  $('bkList').textContent = basket.map(x =>
+    `${x.title}${phones.size > 1 ? ' (' + String(x.phone).slice(-4) + ')' : ''}`).join(' · ');
+}
+
+$('btnBasketClear').onclick = () => {
+  basket = [];
+  document.querySelectorAll('.task-check:checked').forEach(cb => { cb.checked = false; cb.dispatchEvent(new Event('change')); });
+  renderBasket();
+};
+
+$('btnQueueRun').onclick = async () => {
+  if (!basket.length) return;
+  const byPhone = new Map();
+  for (const t of basket) {
+    if (!byPhone.has(t.phone)) byPhone.set(t.phone, []);
+    byPhone.get(t.phone).push({ stuUrl: t.stuUrl, title: t.title, requirement: t.requirement });
+  }
+  const desc = [...byPhone.entries()]
+    .map(([p, ts]) => `${String(p).slice(-4)}：${ts.length} 个`)
+    .join('\n');
+  if (!confirm(`队列执行（最多 3 个账号并行，账号内串行）：\n\n${desc}\n\n共 ${basket.length} 个任务。继续？`)) return;
+
+  const r = await post('/api/run-queue', {
+    items: [...byPhone.entries()].map(([phone, ts]) => ({ phone, tasks: ts })),
+  });
+  if (r.ok) {
+    showMsg($('courseMsg'), `✓ 队列已启动：${r.count} 个任务 / ${r.accounts} 个账号`, 'ok');
+    basket = [];
+    renderBasket();
+    document.querySelectorAll('.task-check:checked').forEach(cb => { cb.checked = false; });
+  } else {
+    showMsg($('courseMsg'), '✗ ' + r.error, 'err');
+  }
+};
+
+async function loadAccounts() {
+  try {
+    const d = await api('/api/accounts');
+    accountPool = d;
+    renderAccounts();
+  } catch (e) {
+    const el = $('accountList');
+    if (el) el.innerHTML = `<span class="muted" style="font-size:12.5px">加载失败：${escapeHtml(e.message)}</span>`;
+  }
+}
+
+function renderAccounts() {
+  const el = $('accountList');
+  if (!el) return;
+  const list = accountPool.accounts || [];
+  if (!list.length) {
+    el.innerHTML = '<span class="muted" style="font-size:12.5px">还没有账号，在下面登录一个就会自动加入</span>';
+    return;
+  }
+  el.innerHTML = list.map(a => `
+    <div class="acc-row ${a.active ? 'active' : ''}" data-phone="${escapeHtml(a.phone)}">
+      ${a.avatar ? `<img class="acc-avatar" src="${escapeHtml(a.avatar)}" referrerpolicy="no-referrer">` : '<span class="acc-avatar"></span>'}
+      <div class="ar-main">
+        <div class="ar-name">${escapeHtml(a.name || a.phoneMasked)}${a.active ? ' · 当前' : ''}</div>
+        <div class="ar-meta">${escapeHtml([a.school, a.phoneMasked, a.hasSession ? '已登录' : '无登录态'].filter(Boolean).join(' · '))}</div>
+      </div>
+      ${a.active ? '' : `<button class="sm acc-switch">切换</button>`}
+      <button class="sm danger acc-del">删</button>
+    </div>`).join('');
+
+  el.querySelectorAll('.acc-switch').forEach(btn => {
+    btn.onclick = async (ev) => {
+      ev.stopPropagation();
+      const phone = btn.closest('.acc-row').dataset.phone;
+      const r = await post('/api/accounts/switch', { phone });
+      if (r.ok) { await loadAccounts(); refresh(); }
+      else showMsg($('loginMsg'), '✗ ' + r.error, 'err');
+    };
+  });
+
+  el.querySelectorAll('.acc-del').forEach(btn => {
+    btn.onclick = async (ev) => {
+      ev.stopPropagation();
+      const phone = btn.closest('.acc-row').dataset.phone;
+      if (!confirm('删除这个账号？会连带清掉它的登录态。')) return;
+      await post('/api/accounts/delete', { phone });
+      await loadAccounts();
+      refresh();
+    };
+  });
+}
+
+$('btnReloadAccounts').onclick = () => loadAccounts();
+
+async function refresh() {
+  try {
+    const s = await api('/api/status');
+    const r = s.runtime || {};
+    const cfg = s.config || {};
+
+    $('phase').textContent = PHASE[r.phase] || r.phase || '空闲';
+    $('dot').className = 'dot ' + (r.running ? 'run'
+      : r.phase === 'error' ? 'err' : r.phase === 'done' ? 'ok' : '');
+    $('progress').textContent = `${r.round || 0} / ${r.limit || cfg.maxRounds || 0}`;
+    $('barFill').style.width =
+      (r.limit ? Math.min(100, ((r.round||0)/r.limit)*100) : 0) + '%';
+    $('kModel').textContent = cfg.model || '-';
+    $('kRan').textContent = (r.round || 0) + ' 个任务';
+
+    if (r.error) showMsg($('runMsg'), r.error, 'err');
+    else hideMsg($('runMsg'));
+
+    $('btnOnce').disabled = r.running;
+    $('btnRun').disabled = r.running;
+    $('btnStop').disabled = !r.running;
+
+    if (s.loggedIn !== null) setLoginPill(s.loggedIn);
+    renderAccount(s.account, s.loggedIn);
+    renderEvents(s.events);
+
+    // 有任务完成 → 按标题把最新分数直接写回那一行（不重载列表）
+    const doneEvts = (s.events || []).filter(x => x.type === 'task-done');
+    if (doneEvts.length !== lastDoneCount) {
+      lastDoneCount = doneEvts.length;
+      const r0 = doneEvts[doneEvts.length - 1].report || {};
+      if (r0.title && r0.scoreAfter !== null && r0.scoreAfter !== undefined) {
+        const rows = [...document.querySelectorAll('.ai-row')];
+        for (const row of rows) {
+          const titleEl = row.querySelector('.ai-title');
+          if (!titleEl || titleEl.textContent.trim() !== String(r0.title).trim()) continue;
+          const sub = row.querySelector('.ai-sub');
+          const req = r0.requirement || 80;
+          if (sub) sub.textContent = `${r0.scoreAfter} 分 · 练习 ${(r0.rounds ?? '-')} 轮 · 达标 ${req}`;
+          const badge = row.querySelector('.ai-badge');
+          if (badge) {
+            const ok = r0.scoreAfter >= req;
+            badge.textContent = ok ? '✓ 达标' : '待提分';
+            badge.className = 'ai-badge ' + (ok ? 'done' : 'todo');
+          }
+          const cb = row.querySelector('.task-check');
+          if (cb && r0.scoreAfter >= req) { cb.checked = false; cb.disabled = true; }
+          break;
+        }
+      }
+    }
+  } catch (e) {
+    showMsg($('runMsg'), '连接服务失败：' + e.message, 'err');
+  }
+}
+
+loadConfig().catch(()=>{});
+loadAccounts();
+refresh();
+setInterval(refresh, 2000);
+</script>
+</body>
+</html>

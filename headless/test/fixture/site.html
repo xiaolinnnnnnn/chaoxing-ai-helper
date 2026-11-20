@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>AI 实践 · 情景对话（mock）</title>
+<style>
+  body { font: 14px/1.6 system-ui, sans-serif; margin: 0; background: #f5f6f8; }
+  .dialogueMain { max-width: 760px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; }
+  .chat { flex: 1; overflow-y: auto; padding: 16px; }
+  .wrap1000 { display: flex; flex-direction: column; gap: 14px; }
+  .chapterName { font-size: 13px; color: #888; text-align: center; margin: 0; }
+  .agent, .user-chat-item { display: flex; gap: 8px; }
+  .user-chat-item { flex-direction: row-reverse; }
+  .agentHead, .userHead { width: 32px; height: 32px; border-radius: 50%; background: #ccd; flex: 0 0 32px; }
+  .agentRight, .userRight { max-width: 76%; }
+  .agentName, .userName { font-size: 12px; color: #999; margin-bottom: 3px; }
+  .userName { text-align: right; }
+  .agentAnswer, .userAnswer {
+    background: #fff; padding: 10px 12px; border-radius: 10px; border: 1px solid #e6e8ec;
+  }
+  .userAnswer { background: #1d7ef5; color: #fff; border-color: #1d7ef5; }
+  .agentAnswer .answer_content p { margin: 0 0 6px; }
+  .agentAnswer .answer_content p:last-child { margin: 0; }
+  .bottom { border-top: 1px solid #e6e8ec; background: #fff; padding: 10px 16px; }
+  .roundBx { font-size: 12px; color: #999; margin-bottom: 6px; }
+  .sendMessage { display: flex; gap: 8px; align-items: flex-end; }
+  .sendMessage > div:first-child { flex: 1; }
+  textarea.messageInput {
+    width: 100%; min-height: 44px; max-height: 120px; resize: none; padding: 10px;
+    border: 1px solid #d8dce3; border-radius: 8px; font: inherit; outline: none;
+  }
+  textarea.messageInputLock { background: #f0f1f4; color: #aaa; }
+  .sendBtn {
+    display: inline-block; padding: 9px 18px; border-radius: 8px; background: #1d7ef5;
+    color: #fff; cursor: pointer; user-select: none;
+  }
+  .sendBtn.optionBtnLock { background: #c9ced8; cursor: not-allowed; }
+  .goOnBtnSpan {
+    display: inline-block; margin-left: 8px; padding: 8px 16px; border-radius: 8px;
+    background: #ff9500; color: #fff; cursor: pointer;
+  }
+  #hud {
+    position: fixed; right: 8px; top: 8px; font-size: 11px; color: #999;
+    background: #fff; border: 1px solid #e6e8ec; border-radius: 6px; padding: 4px 8px;
+  }
+</style>
+</head>
+<body>
+<div id="hud">mock</div>
+
+<div class="dialogueMain">
+  <div class="chat">
+    <div class="wrap1000">
+      <h3 class="chapterName">第一章 · 项目启动会</h3>
+      <div class="agent" data-mock-msg="1">
+        <span class="agentHead"></span>
+        <div class="agentRight">
+          <div class="agentName">测评专家</div>
+          <div class="agentAnswer">
+            <div class="answer_content"><p>你好，我是本次实践的测评专家。请先简单介绍一下你自己。</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom relativeClass">
+    <div class="roundBx">第 1 轮 / 共 3 轮</div>
+    <div class="sendMessage sendMessageActive">
+      <div><textarea class="messageInput" placeholder="请输入你的回答"></textarea></div>
+      <div class="sendOptionBtn"><span class="sendBtn">发送</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/**
+ * Mock 站点行为：完全按 README 里实测的学习通 DOM 结构复刻。
+ * - 点发送（或 Enter）后插入 .user-chat-item > .userAnswer
+ * - 1.2s 后开始「流式」插入下一条 .agent 提问，分 3 段
+ * - 第 3 轮后给出收尾语（用于验证 looksLikeEnding 判定）
+ */
+(function () {
+  const list = document.querySelector('.wrap1000');
+  const input = document.querySelector('.messageInput');
+  const sendBtn = document.querySelector('.sendBtn');
+  const roundBx = document.querySelector('.roundBx');
+  let round = 1;
+  let busy = false;
+
+  const QUESTIONS = [
+    '请介绍一下你在本次项目中的角色定位，以及你打算怎么开展工作？',
+    '上一个问题回答得不错。那么你认为团队协作中最容易出问题的地方是什么？请举例说明。',
+    '最后一个问题：如果项目进度落后，你会如何调整计划？',
+  ];
+  const ENDING = '非常感谢你的参与，本次 AI 实践到此结束，祝你学习顺利！';
+
+  function appendUser(text) {
+    const wrap = document.createElement('div');
+    wrap.className = 'user-chat-item';
+    wrap.innerHTML =
+      '<div class="userRight"><div class="userName">初级分析师</div>' +
+      '<div class="userAnswer"></div></div><span class="userHead"></span>';
+    wrap.querySelector('.userAnswer').textContent = text;
+    list.appendChild(wrap);
+    scrollBottom();
+  }
+
+  function appendAgent() {
+    const wrap = document.createElement('div');
+    wrap.className = 'agent';
+    wrap.innerHTML =
+      '<span class="agentHead"></span><div class="agentRight">' +
+      '<div class="agentName">测评专家</div>' +
+      '<div class="agentAnswer"><div class="answer_content"><p></p></div></div></div>';
+    list.appendChild(wrap);
+    scrollBottom();
+    return wrap.querySelector('.answer_content p');
+  }
+
+  function scrollBottom() {
+    document.querySelector('.chat').scrollTop = 1e9;
+  }
+
+  function stream(text) {
+    // 模拟流式输出：分片追加，最后一条才是完整内容
+    const p = appendAgent();
+    const chunks = text.match(/[^，。？！]{1,12}[，。？！]?/g) || [text];
+    let i = 0;
+    const timer = setInterval(() => {
+      p.textContent += chunks[i++] || '';
+      scrollBottom();
+      if (i >= chunks.length) clearInterval(timer);
+    }, 260);
+  }
+
+  function respond() {
+    const text = round >= QUESTIONS.length ? ENDING : QUESTIONS[round - 1];
+    setTimeout(() => {
+      stream(text);
+      busy = false;
+      round += 1;
+      roundBx.textContent = `第 ${round} 轮 / 共 3 轮`;
+      if (round > QUESTIONS.length) {
+        // 收尾后锁输入框，模拟真实页面的「已完成」态
+        setTimeout(() => {
+          input.disabled = true;
+          input.classList.add('messageInputLock');
+          sendBtn.classList.add('optionBtnLock');
+        }, 1600);
+      }
+    }, 1200);
+  }
+
+  function submit() {
+    const text = input.value.trim();
+    if (!text || busy || input.disabled) return;
+    busy = true;
+    appendUser(text);
+    input.value = '';
+    respond();
+  }
+
+  sendBtn.addEventListener('click', submit);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submit();
+    }
+  });
+
+  document.getElementById('hud').textContent = 'mock · ' + location.search;
+})();
+</script>
+</body>
+</html>
