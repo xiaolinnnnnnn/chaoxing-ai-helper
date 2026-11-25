@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.profile/
+.profile-test/
+logs/
+data/
+.env
+.session.json
+.sessions/
+.accounts.json
+.account.json
+storage-state.json
+.cache/
